@@ -5,6 +5,14 @@ module Holidays
         base.extend ClassMethods
       end
 
+      def acts_like_date?
+        true
+      end
+
+      def acts_like_time?
+        false
+      end
+
       # Get holidays on the current date.
       #
       # Returns an array of hashes or nil. See Holidays#between for options
@@ -35,16 +43,19 @@ module Holidays
       #   Date.new(2007, 5, 12).change(day: 1)               # => Date.new(2007, 5, 1)
       #   Date.new(2007, 5, 12).change(year: 2005, month: 1) # => Date.new(2005, 1, 12)
       def change(options)
-        ::Date.new(
+        ::DateTime.new(
           options.fetch(:year, year),
           options.fetch(:month, month),
-          options.fetch(:day, day)
+          options.fetch(:day, day),
+          options.fetch(:hour, hour),
+          options.fetch(:min, options[:hour] ? 0 : min),
+          options.fetch(:sec, (options[:hour] || options[:min]) ? 0 : sec)
         )
       end
 
       def end_of_month
         last_day = ::Time.days_in_month( self.month, self.year )
-        change(:day => last_day)
+        self.acts_like_time? ? change(:day => last_day, :hour => 23, :min => 59, :sec => 59) : change(:day => last_day)
       end
 
       module ClassMethods
